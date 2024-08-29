@@ -9,6 +9,7 @@ Author: Ihr Name
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
+
 require_once plugin_dir_path(__FILE__) . 'includes/class-bw-chat-wordpress.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-bw-chat-frontend.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-bw-chat-plugin-page.php';
@@ -23,7 +24,6 @@ class BW_Chat {
         new BW_Chat_Frontend();
         new BW_Chat_Plugin_Page();
         new BW_Chat_Email_Check();
-        new BW_Chat_Helper();
     }
 
     // Startet die Sitzung, wenn sie noch nicht gestartet wurde
