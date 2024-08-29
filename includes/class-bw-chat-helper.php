@@ -2,16 +2,52 @@
 
 class BW_Chat_Helper {
 
-    // Formatiert das Datum im gew웢schten Format
+    // Formatiert den neuen Inhalt aus den Custom Fields
+    public static function format_CF_content($post_id) {
+        $meta_keys = get_post_meta($post_id);
+        $formatted_content = '';
+
+        foreach ($meta_keys as $key => $values) {
+            if (strpos($key, 'bw-chat-entry-') === 0) {
+                $timestamp = str_replace('bw-chat-entry-', '', $key);
+                $datetime = self::format_date($timestamp);
+                $time = self::format_time($timestamp);
+                foreach ($values as $value) {
+                    $name = esc_html($value);
+                    $formatted_content .= "<div data-date='{$datetime}'>{$time} - {$name}</div>\n";
+                }
+            }
+        }
+
+        return $formatted_content;
+    }
+
+    // Formatiert das Datum im gew체nschten Format
     public static function format_date($timestamp, $format = 'y-m-d H:i') {
         $datetime = new DateTime("@$timestamp");
         return $datetime->format($format);
     }
 
-    // Formatiert die Zeit im gew웢schten Format
+    // Formatiert die Zeit im gew체nschten Format
     public static function format_time($timestamp) {
         $datetime = new DateTime("@$timestamp");
         return $datetime->format('H:i');
+    }
+
+    // Extrahiert die E-Mail-Adresse aus einem String im Format "Name <email@domain.com>"
+    public static function extract_email_address($email_string) {
+        if (preg_match('/<(.+)>/', $email_string, $matches)) {
+            return $matches[1];
+        }
+        return trim($email_string);
+    }
+
+    // Extrahiert den Namen aus einem String im Format "Name <email@domain.com>"
+    public static function extract_name($email_string) {
+        if (preg_match('/(.+?)\s*<.+>/', $email_string, $matches)) {
+            return trim($matches[1]);
+        }
+        return '';
     }
 
     // Findet einen Post anhand des Session-Keys
@@ -30,19 +66,63 @@ class BW_Chat_Helper {
         return null;
     }
 
-    // Extrahiert die E-Mail-Adresse aus einem String wie "Name <email@domain.com>"
-    public static function extract_email_address($email_string) {
-        if (preg_match('/<(.+)>/', $email_string, $matches)) {
-            return $matches[1];
+    // Extrahiert den geantworteten Text aus einer E-Mail-Nachricht
+    public static function extract_replied_text($message) {
+        // Entferne HTML-Tags aus der Nachricht
+        $message = strip_tags($message);
+
+        // Entferne 체berfl체ssige Leerzeichen und normalisiere Zeilenumbr체che
+        $message = preg_replace('/\r\n|\r|\n/', "\n", trim($message));
+        
+        // Splitte die Nachricht in einzelne Zeilen
+        $lines = explode("\n", $message);
+
+        // Zeichenfolgen f체r Signatur und zitierten Text filtern
+        $replied_text = [];
+        $signature_found = false;
+        $empty_line_count = 0;
+
+        foreach ($lines as $line) {
+            // 횥berpr체fen auf zitierten Text
+            if (preg_match('/^\s*>/', $line)) {
+                continue; // Zitierten Text 체berspringen
+            }
+
+            // 횥berpr체fen auf leere Zeilen (f체r Signaturerkennung)
+            if (trim($line) === '') {
+                $empty_line_count++;
+                if ($empty_line_count >= 2) {
+                    $signature_found = true; // Signatur gefunden
+                    break;
+                }
+            } else {
+                $empty_line_count = 0; // Zur체cksetzen, wenn keine leere Zeile
+            }
+
+            $replied_text[] = $line;
         }
-        return trim($email_string);
+
+        // Join der gefilterten Zeilen und trimmen von Leerzeichen
+        $filtered_message = implode(" ", $replied_text);
+        return trim($filtered_message);
     }
 
-    // Extrahiert den Namen aus einem String wie "Name <email@domain.com>"
-    public static function extract_name($email_string) {
-        if (preg_match('/(.+?)\s*<.+>/', $email_string, $matches)) {
-            return trim($matches[1]);
+    // Erstellt ein Custom Field f체r die Antwortnachricht und aktualisiert den Post-Inhalt
+    public static function create_reply_custom_field($session_key, $replied_text) {
+        $existing_post = self::get_post_by_session_key($session_key);
+
+        if ($existing_post) {
+            $post_id = $existing_post->ID;
+            $timestamp = current_time('timestamp');
+            $meta_key = 'bw-chat-entry-' . $timestamp;
+            add_post_meta($post_id, $meta_key, $replied_text);
+
+            // Aktualisiere den Post-Inhalt
+            $updated_content = $existing_post->post_content . "\n\nAntwort:\n" . $replied_text;
+            wp_update_post(array(
+                'ID' => $post_id,
+                'post_content' => $updated_content
+            ));
         }
-        return '';
     }
 }
