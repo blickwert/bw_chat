@@ -12,7 +12,7 @@ class BW_Chat_Plugin_Page {
     private $smtp_username_option_name = 'bw_chat_smtp_username';
     private $smtp_password_option_name = 'bw_chat_smtp_password';
     
-    // Neue Optionen hinzuf¸gen
+    // Neue Optionen hinzuf√ºgen
     private $chat_activation_option_name = 'bw_chat_activation';
     private $chat_status_option_name = 'bw_chat_status';
     private $online_times_option_name = 'bw_chat_online_times';
@@ -27,7 +27,7 @@ class BW_Chat_Plugin_Page {
         add_action('admin_init', [$this, 'admin_init']);
     }
 
-    // F¸gt das Plugin-Men¸ zur Admin-Seite hinzu
+    // F√ºgt das Plugin-Men√º zur Admin-Seite hinzu
     public function admin_menu() {
         add_options_page(
             'BW Chat Einstellungen',
@@ -40,6 +40,7 @@ class BW_Chat_Plugin_Page {
 
     // Initialisiert die Einstellungen
     public function admin_init() {
+        // Registriere alle Einstellungen
         register_setting('bw_chat_settings_group', $this->email_option_name);
         register_setting('bw_chat_settings_group', $this->reply_to_option_name);
         register_setting('bw_chat_settings_group', $this->imap_hostname_option_name);
@@ -50,7 +51,6 @@ class BW_Chat_Plugin_Page {
         register_setting('bw_chat_settings_group', $this->smtp_username_option_name);
         register_setting('bw_chat_settings_group', $this->smtp_password_option_name);
         
-        // Registriere die neuen Optionen
         register_setting('bw_chat_settings_group', $this->chat_activation_option_name);
         register_setting('bw_chat_settings_group', $this->chat_status_option_name);
         register_setting('bw_chat_settings_group', $this->online_times_option_name);
@@ -69,7 +69,7 @@ class BW_Chat_Plugin_Page {
         );
 
         add_settings_field(
-            'bw_chat_notification_email',
+            $this->email_option_name,
             'Send To',
             [$this, 'email_field_html'],
             'bw-chat-settings',
@@ -77,23 +77,23 @@ class BW_Chat_Plugin_Page {
         );
 
         add_settings_field(
-            'bw_chat_reply_to_email',
+            $this->reply_to_option_name,
             'Send From',
             [$this, 'reply_to_field_html'],
             'bw-chat-settings',
             'bw_chat_settings_section'
         );
 
-        // ‹bersicht
+        // √úbersicht
         add_settings_section(
             'bw_chat_overview_section',
-            '‹bersicht',
+            '√úbersicht',
             null,
             'bw-chat-settings'
         );
 
         add_settings_field(
-            'bw_chat_activation',
+            $this->chat_activation_option_name,
             'Chat aktivieren',
             [$this, 'chat_activation_field_html'],
             'bw-chat-settings',
@@ -101,7 +101,7 @@ class BW_Chat_Plugin_Page {
         );
 
         add_settings_field(
-            'bw_chat_status',
+            $this->chat_status_option_name,
             'Chat Status',
             [$this, 'chat_status_field_html'],
             'bw-chat-settings',
@@ -117,7 +117,7 @@ class BW_Chat_Plugin_Page {
         );
 
         add_settings_field(
-            'bw_chat_online_times',
+            $this->online_times_option_name,
             'Online Zeiten',
             [$this, 'online_times_field_html'],
             'bw-chat-settings',
@@ -125,7 +125,7 @@ class BW_Chat_Plugin_Page {
         );
 
         add_settings_field(
-            'bw_chat_company_title',
+            $this->company_title_option_name,
             'Titel',
             [$this, 'company_title_field_html'],
             'bw-chat-settings',
@@ -133,7 +133,7 @@ class BW_Chat_Plugin_Page {
         );
 
         add_settings_field(
-            'bw_chat_company_email',
+            $this->company_email_option_name,
             'Email',
             [$this, 'company_email_field_html'],
             'bw-chat-settings',
@@ -141,7 +141,7 @@ class BW_Chat_Plugin_Page {
         );
 
         add_settings_field(
-            'bw_chat_company_phone',
+            $this->company_phone_option_name,
             'Telefon',
             [$this, 'company_phone_field_html'],
             'bw-chat-settings',
@@ -149,7 +149,7 @@ class BW_Chat_Plugin_Page {
         );
 
         add_settings_field(
-            'bw_chat_operator_name',
+            $this->operator_name_option_name,
             'Operator Name',
             [$this, 'operator_name_field_html'],
             'bw-chat-settings',
@@ -157,7 +157,7 @@ class BW_Chat_Plugin_Page {
         );
 
         add_settings_field(
-            'bw_chat_operator_image',
+            $this->operator_image_option_name,
             'Operator Profilbild',
             [$this, 'operator_image_field_html'],
             'bw-chat-settings',
@@ -173,7 +173,7 @@ class BW_Chat_Plugin_Page {
         );
 
         add_settings_field(
-            'bw_chat_imap_hostname',
+            $this->imap_hostname_option_name,
             'IMAP Host',
             [$this, 'imap_hostname_field_html'],
             'bw-chat-settings',
@@ -181,7 +181,7 @@ class BW_Chat_Plugin_Page {
         );
 
         add_settings_field(
-            'bw_chat_imap_username',
+            $this->imap_username_option_name,
             'IMAP Benutzername',
             [$this, 'imap_username_field_html'],
             'bw-chat-settings',
@@ -189,7 +189,7 @@ class BW_Chat_Plugin_Page {
         );
 
         add_settings_field(
-            'bw_chat_imap_password',
+            $this->imap_password_option_name,
             'IMAP Passwort',
             [$this, 'imap_password_field_html'],
             'bw-chat-settings',
@@ -197,7 +197,7 @@ class BW_Chat_Plugin_Page {
         );
 
         add_settings_field(
-            'bw_chat_smtp_enabled',
+            $this->smtp_enabled_option_name,
             'SMTP aktivieren',
             [$this, 'smtp_enabled_field_html'],
             'bw-chat-settings',
@@ -205,7 +205,7 @@ class BW_Chat_Plugin_Page {
         );
 
         add_settings_field(
-            'bw_chat_smtp_host',
+            $this->smtp_host_option_name,
             'SMTP Host',
             [$this, 'smtp_host_field_html'],
             'bw-chat-settings',
@@ -213,7 +213,7 @@ class BW_Chat_Plugin_Page {
         );
 
         add_settings_field(
-            'bw_chat_smtp_username',
+            $this->smtp_username_option_name,
             'SMTP Benutzername',
             [$this, 'smtp_username_field_html'],
             'bw-chat-settings',
@@ -221,7 +221,7 @@ class BW_Chat_Plugin_Page {
         );
 
         add_settings_field(
-            'bw_chat_smtp_password',
+            $this->smtp_password_option_name,
             'SMTP Passwort',
             [$this, 'smtp_password_field_html'],
             'bw-chat-settings',
@@ -229,7 +229,7 @@ class BW_Chat_Plugin_Page {
         );
     }
 
-    // HTML f¸r das Eingabefeld der Benachrichtigungs-E-Mail (Send To)
+    // HTML f√ºr das Eingabefeld der Benachrichtigungs-E-Mail (Send To)
     public function email_field_html() {
         $email = get_option($this->email_option_name);
         ?>
@@ -237,7 +237,7 @@ class BW_Chat_Plugin_Page {
         <?php
     }
 
-    // HTML f¸r das Eingabefeld der Reply-To-E-Mail (Send From)
+    // HTML f√ºr das Eingabefeld der Reply-To-E-Mail (Send From)
     public function reply_to_field_html() {
         $reply_to = get_option($this->reply_to_option_name);
         ?>
@@ -245,29 +245,29 @@ class BW_Chat_Plugin_Page {
         <?php
     }
 
-    // HTML f¸r das Dropdown zur Aktivierung des Chats
+    // HTML f√ºr das Dropdown zur Aktivierung des Chats
     public function chat_activation_field_html() {
         $activation = get_option($this->chat_activation_option_name);
         ?>
         <select name="<?php echo $this->chat_activation_option_name; ?>">
-            <option value="Nein" <?php selected($activation, 'Nein'); ?>>Nein</option>
-            <option value="Ja" <?php selected($activation, 'Ja'); ?>>Ja</option>
+            <option value="false" <?php selected($activation, 'false'); ?>>Nein</option>
+            <option value="true" <?php selected($activation, 'true'); ?>>Ja</option>
         </select>
         <?php
     }
-
-    // HTML f¸r das Dropdown zum Status des Chats
+    
+    // HTML f√ºr das Dropdown zum Status des Chats
     public function chat_status_field_html() {
         $status = get_option($this->chat_status_option_name);
         ?>
         <select name="<?php echo $this->chat_status_option_name; ?>">
-            <option value="Offline" <?php selected($status, 'Offline'); ?>>Offline</option>
-            <option value="Live" <?php selected($status, 'Live'); ?>>Live</option>
+            <option value="false" <?php selected($status, 'false'); ?>>Offline</option>
+            <option value="true" <?php selected($status, 'true'); ?>>Live</option>
         </select>
         <?php
     }
-
-    // HTML f¸r das Eingabefeld der Online-Zeiten
+    
+    // HTML f√ºr das Eingabefeld der Online-Zeiten
     public function online_times_field_html() {
         $online_times = get_option($this->online_times_option_name);
         ?>
@@ -275,7 +275,7 @@ class BW_Chat_Plugin_Page {
         <?php
     }
 
-    // HTML f¸r das Eingabefeld des Titels
+    // HTML f√ºr das Eingabefeld des Titels
     public function company_title_field_html() {
         $title = get_option($this->company_title_option_name);
         ?>
@@ -283,7 +283,7 @@ class BW_Chat_Plugin_Page {
         <?php
     }
 
-    // HTML f¸r das Eingabefeld der Email
+    // HTML f√ºr das Eingabefeld der Email
     public function company_email_field_html() {
         $email = get_option($this->company_email_option_name);
         ?>
@@ -291,7 +291,7 @@ class BW_Chat_Plugin_Page {
         <?php
     }
 
-    // HTML f¸r das Eingabefeld der Telefonnummer
+    // HTML f√ºr das Eingabefeld der Telefonnummer
     public function company_phone_field_html() {
         $phone = get_option($this->company_phone_option_name);
         ?>
@@ -299,7 +299,7 @@ class BW_Chat_Plugin_Page {
         <?php
     }
 
-    // HTML f¸r das Eingabefeld des Operator-Namens
+    // HTML f√ºr das Eingabefeld des Operator-Namens
     public function operator_name_field_html() {
         $operator_name = get_option($this->operator_name_option_name);
         ?>
@@ -307,12 +307,12 @@ class BW_Chat_Plugin_Page {
         <?php
     }
 
-    // HTML f¸r das Eingabefeld des Operator-Profilbildes
+    // HTML f√ºr das Eingabefeld des Operator-Profilbildes
     public function operator_image_field_html() {
         $operator_image = get_option($this->operator_image_option_name);
         ?>
         <input type="text" id="operator_image" name="<?php echo $this->operator_image_option_name; ?>" value="<?php echo esc_attr($operator_image); ?>" class="regular-text">
-        <button type="button" class="upload_image_button button">Bild ausw‰hlen</button>
+        <button type="button" class="upload_image_button button">Bild ausw√§hlen</button>
         <button type="button" class="remove_image_button button">Bild entfernen</button>
         <script type="text/javascript">
             jQuery(document).ready(function($){
@@ -324,9 +324,9 @@ class BW_Chat_Plugin_Page {
                         return;
                     }
                     mediaUploader = wp.media.frames.file_frame = wp.media({
-                        title: 'W‰hle ein Profilbild',
+                        title: 'W√§hle ein Profilbild',
                         button: {
-                            text: 'Bild ausw‰hlen'
+                            text: 'Bild ausw√§hlen'
                         }, multiple: false });
                     mediaUploader.on('select', function() {
                         var attachment = mediaUploader.state().get('selection').first().toJSON();
@@ -342,7 +342,7 @@ class BW_Chat_Plugin_Page {
         <?php
     }
 
-    // HTML f¸r das Eingabefeld des IMAP Hostnames
+    // HTML f√ºr das Eingabefeld des IMAP Hostnames
     public function imap_hostname_field_html() {
         $hostname = get_option($this->imap_hostname_option_name);
         ?>
@@ -350,7 +350,7 @@ class BW_Chat_Plugin_Page {
         <?php
     }
 
-    // HTML f¸r das Eingabefeld des IMAP Benutzernamens
+    // HTML f√ºr das Eingabefeld des IMAP Benutzernamens
     public function imap_username_field_html() {
         $username = get_option($this->imap_username_option_name);
         ?>
@@ -358,7 +358,7 @@ class BW_Chat_Plugin_Page {
         <?php
     }
 
-    // HTML f¸r das Eingabefeld des IMAP Passworts
+    // HTML f√ºr das Eingabefeld des IMAP Passworts
     public function imap_password_field_html() {
         $password = get_option($this->imap_password_option_name);
         ?>
@@ -366,7 +366,7 @@ class BW_Chat_Plugin_Page {
         <?php
     }
 
-    // HTML f¸r das Dropdown zur Aktivierung von SMTP
+    // HTML f√ºr das Dropdown zur Aktivierung von SMTP
     public function smtp_enabled_field_html() {
         $enabled = get_option($this->smtp_enabled_option_name);
         ?>
@@ -377,7 +377,7 @@ class BW_Chat_Plugin_Page {
         <?php
     }
 
-    // HTML f¸r das Eingabefeld des SMTP Hosts
+    // HTML f√ºr das Eingabefeld des SMTP Hosts
     public function smtp_host_field_html() {
         $smtp_host = get_option($this->smtp_host_option_name);
         ?>
@@ -385,7 +385,7 @@ class BW_Chat_Plugin_Page {
         <?php
     }
 
-    // HTML f¸r das Eingabefeld des SMTP Benutzernamens
+    // HTML f√ºr das Eingabefeld des SMTP Benutzernamens
     public function smtp_username_field_html() {
         $smtp_username = get_option($this->smtp_username_option_name);
         ?>
@@ -393,7 +393,7 @@ class BW_Chat_Plugin_Page {
         <?php
     }
 
-    // HTML f¸r das Eingabefeld des SMTP Passworts
+    // HTML f√ºr das Eingabefeld des SMTP Passworts
     public function smtp_password_field_html() {
         $smtp_password = get_option($this->smtp_password_option_name);
         ?>
