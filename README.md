@@ -42,7 +42,7 @@
 |                     | public function company_email_field_html    |                                         |
 |                     | public function company_phone_field_html    |                                         |
 |                     | public function operator_name_field_html   |                                         |
-|                     | public functionoperator_image_field_html    |                                         |
+|                     | public function operator_image_field_html    |                                         |
 |                     | public function imap_hostname_field_html    |                                         |
 |                     | public function imap_username_field_html   |                                         |
 |                     | public function imap_password_field_html    |                                         |
