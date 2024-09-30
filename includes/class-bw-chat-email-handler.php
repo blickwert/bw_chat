@@ -5,67 +5,62 @@ class BW_Chat_Email_Handler {
     private $use_custom_smtp = false;
 
     public function __construct() {
-        // Hook in phpmailer_init fŸr SMTP-Konfiguration
+        // Hook in phpmailer_init fÂŸr SMTP-Konfiguration
         add_action('phpmailer_init', [$this, 'configure_phpmailer']);
     }
 
+/*
     // Sendet eine E-Mail-Benachrichtigung an den Administrator
-    public function send_email_notification($name, $session_key) {
-        $send_to_raw = get_option('bw_chat_notification_email'); // Send To (kann Name <email@domain.com> sein)
-        $send_from_raw = get_option('bw_chat_reply_to_email'); // Send From (kann Name <email@domain.com> sein)
-
-        // Extrahiere Name und E-Mail-Adresse fŸr Send To
+    private function send_email_notification($name, $session_key) {
+        $send_to_raw = get_option('bw_chat_notification_email');
+        $send_from_raw = get_option('bw_chat_reply_to_email');
+    
         $send_to = BW_Chat_Helper::extract_email_address($send_to_raw);
         $send_to_name = BW_Chat_Helper::extract_name($send_to_raw);
-
-        // Extrahiere Name und E-Mail-Adresse fŸr Send From
+    
         $send_from = BW_Chat_Helper::extract_email_address($send_from_raw);
         $send_from_name = BW_Chat_Helper::extract_name($send_from_raw);
-
+    
         $subject = 'Neue Chat-Nachricht - ' . $session_key;
-
-        // Nachricht formatieren mit den bestehenden Chat-EintrŠgen
+    
         $existing_post = BW_Chat_Helper::get_post_by_session_key($session_key);
         $message_body = "Bisheriger Chat-Verlauf:\n\n";
-
+        
         if ($existing_post) {
             $post_id = $existing_post->ID;
-            $meta_keys = get_post_meta($post_id);
-
-            foreach ($meta_keys as $key => $values) {
-                if (strpos($key, 'bw-chat-entry-') === 0) {
-                    $timestamp = str_replace('bw-chat-entry-', '', $key);
-                    $time = BW_Chat_Helper::format_time($timestamp);
-                    $date = BW_Chat_Helper::format_date($timestamp, 'd. M');
-                    foreach ($values as $value) {
-                        $formatted_value = esc_html($value);
-                        $message_body .= "- {$time} {$date} | {$formatted_value}\n";
-                    }
-                }
+            $meta_items = BW_Chat_Helper::post_meta_values($post_id, 'bw-chat-');
+    
+            foreach ($meta_items as $key => $value) {
+                $meta_key_user = self::cf_user_meta_key();
+                $meta_key_admin = self::cf_admin_meta_key();
+                $timestamp = str_replace([$meta_key_user, $meta_key_admin], '', $meta_key);
+                $time = BW_Chat_Helper::format_time($timestamp);
+                $date = BW_Chat_Helper::format_date($timestamp, 'd. M');
+                $formatted_value = esc_html($value);
+                $type = strpos($key, $meta_key_admin) === 0 ? 'admin' : 'user';
+                $message_body .= "- {$time} {$date} | {$type} {$formatted_value}\n";
             }
         }
-
-        // FŸge die Session-ID am Ende der Nachricht hinzu
+    
         $message_body .= "\nNachrichten ID: " . $session_key;
-
-        // †berprŸfen, ob SMTP aktiviert ist
-        $smtp_enabled = get_option('bw_chat_smtp_enabled'); // Ja oder Nein
-
+    
+        $smtp_enabled = get_option('bw_chat_smtp_enabled');
+    
         if ($smtp_enabled === 'Ja') {
-            // Setze das Flag zur Verwendung von benutzerdefiniertem SMTP
             $this->use_custom_smtp = true;
         }
-
-        // Senden der E-Mail
+    
         $headers = array('Content-Type: text/plain; charset=UTF-8');
         if ($send_from) {
             $headers[] = 'From: ' . $send_from_name . ' <' . $send_from . '>';
         }
         wp_mail($send_to, $subject, $message_body, $headers);
-
-        // ZurŸcksetzen des Flags nach dem Senden der E-Mail
+    
         $this->use_custom_smtp = false;
     }
+*/
+
+
 
     // Konfiguriert PHPMailer, wenn benutzerdefiniertes SMTP aktiviert ist
     public function configure_phpmailer($phpmailer) {
@@ -74,7 +69,7 @@ class BW_Chat_Email_Handler {
             $smtp_host_config = get_option('bw_chat_smtp_host');
             $smtp_host = '';
             $smtp_port = 587;  // Standardport
-            $smtp_secure = 'tls';  // StandardverschlŸsselung
+            $smtp_secure = 'tls';  // StandardverschlÂŸsselung
 
             if ($smtp_host_config) {
                 $host_parts = explode(':', $smtp_host_config);
