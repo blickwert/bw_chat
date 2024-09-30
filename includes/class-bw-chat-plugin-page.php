@@ -415,5 +415,5 @@ class BW_Chat_Plugin_Page {
             </form>
         </div>
         <?php
-    }
+    } 
 }
