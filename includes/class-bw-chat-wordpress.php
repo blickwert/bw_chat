@@ -4,7 +4,6 @@ class BW_Chat_WordPress {
 
     public function __construct() {
         add_action('init', [$this, 'create_bw_chat_cpt']);
-        add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts']);
         add_filter('acf/settings/remove_wp_meta_box', [$this, 'enable_native_custom_fields']);
     }
 
@@ -36,20 +35,7 @@ class BW_Chat_WordPress {
         register_post_type('bw-chat', $args);
     }
 
-    public function enqueue_scripts() {
-        wp_enqueue_script('jquery');
-        wp_enqueue_script('ajax-form-script', plugin_dir_url(__FILE__) . '../js/ajax-form.js', array('jquery'), null, true);
 
-        $session_key = session_id();
-        $existing_post = BW_Chat_Helper::get_post_by_session_key($session_key);
-        $existing_content = $existing_post ? $existing_post->post_content : '';
-
-        wp_localize_script('ajax-form-script', 'ajax_form_params', array(
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('ajax-form-nonce'),
-            'existing_content' => $existing_content
-        ));
-    }
 
     public function enable_native_custom_fields($value) {
         global $post;
