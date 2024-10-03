@@ -5,7 +5,7 @@ class BW_Chat_Email_Handler {
     private $use_custom_smtp = false;
 
     public function __construct() {
-        // Hook in phpmailer_init fÂŸr SMTP-Konfiguration
+        // Hook in phpmailer_init fŸr SMTP-Konfiguration
         add_action('phpmailer_init', [$this, 'configure_phpmailer']);
     }
 
@@ -69,7 +69,7 @@ class BW_Chat_Email_Handler {
             $smtp_host_config = get_option('bw_chat_smtp_host');
             $smtp_host = '';
             $smtp_port = 587;  // Standardport
-            $smtp_secure = 'tls';  // StandardverschlÂŸsselung
+            $smtp_secure = 'tls';  // StandardverschlŸsselung
 
             if ($smtp_host_config) {
                 $host_parts = explode(':', $smtp_host_config);

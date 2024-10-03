@@ -3,7 +3,7 @@
 class BW_Chat_Email_Check {
 
     public function __construct() {
-        // Registriere AJAX-Action fÃ¼r angemeldete und nicht angemeldete Benutzer
+        // Registriere AJAX-Action für angemeldete und nicht angemeldete Benutzer
     }
 
 

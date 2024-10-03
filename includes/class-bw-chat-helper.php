@@ -5,12 +5,12 @@ class BW_Chat_Helper {
 
     private static $config = 'Standardkonfiguration';
     /**
-     * FÃ¼gt einem Post ein benutzerdefiniertes Feld (Custom Field) fÃ¼r Chat-Nachrichten hinzu.
+     * Fügt einem Post ein benutzerdefiniertes Feld (Custom Field) für Chat-Nachrichten hinzu.
      *
      * @param string $session_key Der Session-Key, um den entsprechenden Post zu finden.
-     * @param string $meta_key Der SchlÃ¼ssel fÃ¼r das benutzerdefinierte Feld.
-     * @param string $meta_value Der Wert fÃ¼r das benutzerdefinierte Feld.
-     * @return bool True, wenn das benutzerdefinierte Feld erfolgreich hinzugefÃ¼gt wurde, andernfalls false.
+     * @param string $meta_key Der Schlüssel für das benutzerdefinierte Feld.
+     * @param string $meta_value Der Wert für das benutzerdefinierte Feld.
+     * @return bool True, wenn das benutzerdefinierte Feld erfolgreich hinzugefügt wurde, andernfalls false.
      */
 
 
@@ -20,26 +20,35 @@ class BW_Chat_Helper {
      *
      * @return session id
      */
+/*
     public function start_session() {
         if (!session_id()) {
             session_start();
         }
     }
+*/
     
     
+/*
     public static function get_session_key() {
-        // ÃœberprÃ¼fen, ob bereits Header gesendet wurden
+        // Überprüfen, ob bereits Header gesendet wurden
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+
         if (session_status() == PHP_SESSION_NONE) {
             session_start();
         }
         return session_id();
     }
+*/
 
 
     
     public static function is_session_id() {
-        $session_id =  (!session_id() ? false : true);
-        return $session_id;        
+        $output =  (!session_id() ? false : true);
+        return $output;        
     }
 
 
@@ -49,7 +58,7 @@ class BW_Chat_Helper {
 
         if ($existing_post) {
             $post_id = $existing_post->ID;
-            // FÃ¼ge das benutzerdefinierte Feld hinzu
+            // Füge das benutzerdefinierte Feld hinzu
             add_post_meta($post_id, $meta_key, $meta_value);
             return true;
         }
@@ -77,14 +86,24 @@ class BW_Chat_Helper {
 
         return null;
     }
+    
+    
+
+    public static function is_bw_chat_sessionid_post() {
+        $post_id = self::get_post_by_session_key( session_id());
+        return $post_id ? true : false;
+    }
+
+
+
 
     /**
-     * ÃœberprÃ¼ft, ob der Chat aktiviert ist
+     * Überprüft, ob der Chat aktiviert ist
      *
      * @return bool True
      */
     public static function is_bw_chat_active() {
-        $chat_status = get_option('bw_chat_activation', 'false'); // StandardmÃ¤ÃŸig 'false'
+        $chat_status = get_option('bw_chat_activation', 'false'); // Standardmäßig 'false'
         if ($chat_status !== 'true') {
             return false;
         }
@@ -93,22 +112,25 @@ class BW_Chat_Helper {
 
 
     /**
-     * ÃœberprÃ¼ft, ob der Chat aktuell live ist basierend auf den Online-Zeiten und dem Chat-Status.
+     * Überprüft, ob der Chat aktuell live ist basierend auf den Online-Zeiten und dem Chat-Status.
      *
      * @return bool True, wenn der Chat live ist und die aktuelle Zeit innerhalb der definierten Online-Zeiten liegt, andernfalls false.
      */
     public static function is_bw_chat_live() {
-        $chat_status = get_option('bw_chat_status', 'false'); // StandardmÃ¤ÃŸig 'false'
+        $chat_status = get_option('bw_chat_status', 'false'); // Standardmäßig 'false'
         if ($chat_status !== 'true') {
             return false;
         }
-        // ÃœberprÃ¼fen, ob die aktuelle Zeit innerhalb der definierten Online-Zeiten liegt
-        return self::onlinetime_is_current_time();
+        
+        // Überprüfen, ob die aktuelle Zeit innerhalb der definierten Online-Zeiten liegt
+        $is_online = self::onlinetime_is_current_time();
+//        error_log("Chat live check: " . var_export($is_online, true)); // Logge den Rückgabewert zur Überprüfung
+        return $is_online;
     }
 
 
     /**
-     * ÃœberprÃ¼ft, ob die aktuelle Serverzeit innerhalb der angegebenen Online-Zeiten liegt.
+     * Überprüft, ob die aktuelle Serverzeit innerhalb der angegebenen Online-Zeiten liegt.
      *
      * @return bool True, wenn die aktuelle Zeit innerhalb der Online-Zeiten liegt, andernfalls false.
      */
@@ -125,8 +147,8 @@ class BW_Chat_Helper {
         $online_times = self::onlinetime_parse($online_times_string);
 
         // Holen Sie sich den aktuellen Server-Tag und die Zeit
-        $current_day = strtoupper(current_time('D')); // z.B., "Mon" -> "MO"
-        $current_time = current_time('H.i'); // Aktuelle Serverzeit im Format "H.i" (z.B., "14.30" fÃ¼r 14:30 Uhr)
+        $current_day = strtoupper(current_time('D', false)); // z.B., "Mon" -> "MO"
+        $current_time = current_time('H.i', false); // Aktuelle Serverzeit im Format "H.i" (z.B., "14.30" für 14:30 Uhr)
         
         // Map PHP date 'D' format to our custom format
         $day_map = [
@@ -144,22 +166,23 @@ class BW_Chat_Helper {
 
         $current_day_key = $day_map[$current_day];
 
-        // ÃœberprÃ¼fen, ob fÃ¼r den aktuellen Tag Online-Zeiten definiert sind
+        // Überprüfen, ob für den aktuellen Tag Online-Zeiten definiert sind
         if (!isset($online_times[$current_day_key])) {
             return false;
         }
 
-        // Ãœber jede Zeitperiode fÃ¼r den aktuellen Tag iterieren
+        // Über jede Zeitperiode für den aktuellen Tag iterieren
         foreach ($online_times[$current_day_key] as $time_range) {
             // Split the time range into start and end
             list($start_time, $end_time) = explode('-', $time_range);
 
-            // Convert times to comparable formats
-            $start_time = str_replace('.', ':', $start_time);
-            $end_time = str_replace('.', ':', $end_time);
+            // Konvertiere die Zeiten zu DateTime-Objekten
+            $current = DateTime::createFromFormat('H.i', $current_time);
+            $start = DateTime::createFromFormat('H.i', $start_time);
+            $end = DateTime::createFromFormat('H.i', $end_time);
 
-            // Check if the current time falls within the range
-            if ($current_time >= $start_time && $current_time <= $end_time) {
+            // Wenn die aktuelle Zeit innerhalb des Bereichs liegt
+            if ($current >= $start && $current <= $end) {
                 return true;
             }
         }
@@ -168,7 +191,7 @@ class BW_Chat_Helper {
     }
 
     /**
-     * Parst die Eingabe der Online-Zeiten und gibt ein assoziatives Array zurÃ¼ck.
+     * Parst die Eingabe der Online-Zeiten und gibt ein assoziatives Array zurück.
      * 
      * @param string $input Die Eingabezeichenfolge aus dem bw_chat_online_times-Feld.
      * @return array Die geparsten Online-Zeiten als assoziatives Array.
@@ -227,7 +250,7 @@ class BW_Chat_Helper {
         $end_index = array_search($end_day, $days_order);
         
         if ($start_index === false || $end_index === false) {
-            return []; // UngÃ¼ltige Tage
+            return []; // Ungültige Tage
         }
 
         return array_slice($days_order, $start_index, $end_index - $start_index + 1);
@@ -236,7 +259,7 @@ class BW_Chat_Helper {
     /**
      * Extrahiert die E-Mail-Adresse aus einem String im Format "Name <email@domain.com>"
      *
-     * @param string $email_string Die Eingabezeichenfolge, die die E-Mail-Adresse enthÃ¤lt.
+     * @param string $email_string Die Eingabezeichenfolge, die die E-Mail-Adresse enthält.
      * @return string Die extrahierte E-Mail-Adresse.
      */
     public static function extract_email_address($email_string) {
@@ -249,7 +272,7 @@ class BW_Chat_Helper {
     /**
      * Extrahiert den Namen aus einem String im Format "Name <email@domain.com>"
      *
-     * @param string $email_string Die Eingabezeichenfolge, die den Namen enthÃ¤lt.
+     * @param string $email_string Die Eingabezeichenfolge, die den Namen enthält.
      * @return string Der extrahierte Name.
      */
     public static function extract_name($email_string) {
@@ -272,27 +295,27 @@ public static function extract_replied_text($message) {
     // Entferne HTML-Tags aus der Nachricht
     $message = strip_tags($message);
 
-    // Dekodiert HTML-Entities und Sonderzeichen (einschlieÃŸlich UTF-8 Emojis)
+    // Dekodiert HTML-Entities und Sonderzeichen (einschließlich UTF-8 Emojis)
     $message = html_entity_decode($message, ENT_QUOTES, 'UTF-8');
 
-    // Entferne Ã¼berflÃ¼ssige Leerzeichen und normalisiere ZeilenumbrÃ¼che
+    // Entferne überflüssige Leerzeichen und normalisiere Zeilenumbrüche
     $message = preg_replace('/\r\n|\r|\n/', "\n", trim($message));
     
     // Splitte die Nachricht in einzelne Zeilen
     $lines = explode("\n", $message);
 
-    // Zeichenfolgen fÃ¼r Signatur und zitierten Text filtern
+    // Zeichenfolgen für Signatur und zitierten Text filtern
     $replied_text = [];
     $signature_found = false;
     $empty_line_count = 0;
 
     foreach ($lines as $line) {
-        // ÃœberprÃ¼fen auf zitierten Text
+        // Überprüfen auf zitierten Text
         if (preg_match('/^\s*>/', $line)) {
-            continue; // Zitierten Text Ã¼berspringen
+            continue; // Zitierten Text überspringen
         }
 
-        // ÃœberprÃ¼fen auf leere Zeilen (fÃ¼r Signaturerkennung)
+        // Überprüfen auf leere Zeilen (für Signaturerkennung)
         if (trim($line) === '') {
             $empty_line_count++;
             if ($empty_line_count >= 2) {
@@ -300,7 +323,7 @@ public static function extract_replied_text($message) {
                 break;
             }
         } else {
-            $empty_line_count = 0; // ZurÃ¼cksetzen, wenn keine leere Zeile
+            $empty_line_count = 0; // Zurücksetzen, wenn keine leere Zeile
         }
 
         $replied_text[] = $line;
@@ -310,7 +333,7 @@ public static function extract_replied_text($message) {
     $filtered_message = implode(" ", $replied_text);
     $trim_filtered_message = trim($filtered_message);
 
-    // Entferne jegliche unsichere oder unerwÃ¼nschte HTML und formatiere den Text als reine Zeichenfolge
+    // Entferne jegliche unsichere oder unerwünschte HTML und formatiere den Text als reine Zeichenfolge
     return sanitize_text_field($trim_filtered_message);
 }
 
@@ -320,7 +343,7 @@ public static function extract_replied_text($message) {
     /**
      * Formatiert den neuen Inhalt aus den Custom Fields.
      *
-     * @param int $post_id Die ID des Posts, fÃ¼r den die Custom Fields formatiert werden sollen.
+     * @param int $post_id Die ID des Posts, für den die Custom Fields formatiert werden sollen.
      * @return string Der formatierte Inhalt.
      */
     public static function format_CF_content($post_id) {
@@ -339,10 +362,10 @@ public static function extract_replied_text($message) {
     }
 
     /**
-     * Formatiert das Datum im gewÃ¼nschten Format.
+     * Formatiert das Datum im gewünschten Format.
      *
      * @param int $timestamp Der Unix-Timestamp, der formatiert werden soll.
-     * @param string $format Das gewÃ¼nschte Datumsformat.
+     * @param string $format Das gewünschte Datumsformat.
      * @return string Das formatierte Datum.
      */
     public static function format_date($timestamp, $format = 'y-m-d H:i') {
@@ -351,7 +374,7 @@ public static function extract_replied_text($message) {
     }
 
     /**
-     * Formatiert die Zeit im gewÃ¼nschten Format.
+     * Formatiert die Zeit im gewünschten Format.
      *
      * @param int $timestamp Der Unix-Timestamp, der formatiert werden soll.
      * @return string Die formatierte Zeit.
@@ -365,20 +388,20 @@ public static function extract_replied_text($message) {
 
 
     /**
-     * Generiert den Meta-SchlÃ¼ssel fÃ¼r eine Benutzereingabe (Formular/AJAX).
+     * Generiert den Meta-Schlüssel für eine Benutzereingabe (Formular/AJAX).
      *
-     * @param int $timestamp Der Unix-Timestamp fÃ¼r den Zeitpunkt der Eingabe.
-     * @return string Der generierte Meta-SchlÃ¼ssel fÃ¼r die Benutzereingabe.
+     * @param int $timestamp Der Unix-Timestamp für den Zeitpunkt der Eingabe.
+     * @return string Der generierte Meta-Schlüssel für die Benutzereingabe.
      */
     public static function cf_user_meta_key($timestamp = '') {
         return 'bw-chat-entry-user-' . $timestamp;
     }
 
     /**
-     * Generiert den Meta-SchlÃ¼ssel fÃ¼r eine Benutzereingabe (Formular/AJAX).
+     * Generiert den Meta-Schlüssel für eine Benutzereingabe (Formular/AJAX).
      *
-     * @param int $timestamp Der Unix-Timestamp fÃ¼r den Zeitpunkt der Eingabe.
-     * @return string Der generierte Meta-SchlÃ¼ssel fÃ¼r die Benutzereingabe.
+     * @param int $timestamp Der Unix-Timestamp für den Zeitpunkt der Eingabe.
+     * @return string Der generierte Meta-Schlüssel für die Benutzereingabe.
      */
     public static function cf_admin_meta_key($timestamp = '') {
         return 'bw-chat-entry-admin-' . $timestamp;
@@ -422,14 +445,14 @@ public static function extract_replied_text($message) {
  * Unterscheidet zwischen 'admin' und 'user'.
  */
 public static function get_chat_type($meta_key) {
-    $meta_key_user = self::cf_user_meta_key();  // Meta-SchlÃ¼ssel fÃ¼r Benutzer
-    $meta_key_admin = self::cf_admin_meta_key();  // Meta-SchlÃ¼ssel fÃ¼r Administrator
+    $meta_key_user = self::cf_user_meta_key();  // Meta-Schlüssel für Benutzer
+    $meta_key_admin = self::cf_admin_meta_key();  // Meta-Schlüssel für Administrator
 
-    // ÃœberprÃ¼fe, ob der Meta-SchlÃ¼ssel dem Benutzer oder dem Administrator zugeordnet ist
+    // Überprüfe, ob der Meta-Schlüssel dem Benutzer oder dem Administrator zugeordnet ist
     if (strpos($meta_key, $meta_key_user) === 0) {
-        return 'user';  // Der Eintrag gehÃ¶rt dem Benutzer
+        return 'user';  // Der Eintrag gehört dem Benutzer
     } elseif (strpos($meta_key, $meta_key_admin) === 0) {
-        return 'admin';  // Der Eintrag gehÃ¶rt dem Administrator
+        return 'admin';  // Der Eintrag gehört dem Administrator
     }
 
     return 'unknown';  // Fallback, falls der Typ nicht erkennbar ist

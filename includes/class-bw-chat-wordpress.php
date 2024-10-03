@@ -44,4 +44,4 @@ class BW_Chat_WordPress {
         }
         return $value;
     }
-} 
+}
