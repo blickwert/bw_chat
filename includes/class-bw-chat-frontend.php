@@ -3,7 +3,6 @@
 class BW_Chat_Frontend {
 
     private $use_custom_smtp = false;
-//    private $session_key;
 
     public function __construct() {
 //        $this->session_key = session_id();
@@ -46,7 +45,7 @@ public function enqueue_scripts() {
         'nonce_start'    => wp_create_nonce('ajax-form-start-nonce'),  // Nonce für Start-Formular
         'nonce_contact'  => wp_create_nonce('ajax-form-contact-nonce'), // Nonce für Kontaktformular
         'nonce_userinput' => wp_create_nonce('ajax-form-userinput-nonce'), // Nonce für Benutzereingaben
-        'session_id' => session_id(),
+        'session_id' => BW_Chat_Helper::my_session_id(),
         'is_chat_live' => BW_Chat_Helper::is_bw_chat_live(),
         'post_sessionid' => BW_Chat_Helper::is_bw_chat_sessionid_post(),
     ));
@@ -83,7 +82,7 @@ public function enqueue_scripts() {
       check_ajax_referer('ajax-form-nonce', 'security');
         // Überprüfen, ob das Cookie gesetzt ist
 
-        $session_key = session_id();
+        $session_key = BW_Chat_Helper::my_session_id();
         error_log($session_key);
         if ($session_key) {
             // SMTP/IMAP Serverdaten aus den Plugin-Optionen
@@ -147,7 +146,7 @@ public function enqueue_scripts() {
         // Überprüfe die Nonce, um sicherzustellen, dass die Anfrage gültig ist
         check_ajax_referer('ajax-form-start-nonce', 'security');
         // Starte die Session und erhalte den Session Key
-        $session_key = session_id();
+        $session_key = BW_Chat_Helper::my_session_id();
 
     
         // Prüfe, ob die Felder übergeben wurden
@@ -197,7 +196,7 @@ public function enqueue_scripts() {
 
 public function response_ajax_form_start() { 
     
-    $post = BW_Chat_Helper::get_post_by_session_key(session_id());
+    $post = BW_Chat_Helper::get_post_by_session_key(BW_Chat_Helper::my_session_id());
     $post_id = $post->ID;
     
     $name = get_post_meta($post_id, 'bw-chat-userprofile-name', true );
@@ -262,7 +261,7 @@ public function handle_ajax_form_userinput() {
     $chat_entry = isset($_POST['chat-userinput-entry']) ? sanitize_text_field($_POST['chat-userinput-entry']) : false;   
     
     // Startet die Session und erhält den Session-Schlüssel
-    $session_key = session_id();
+    $session_key = BW_Chat_Helper::my_session_id();
     
     // Holt den aktuellen Zeitstempel in GMT (kann je nach Bedarf angepasst werden)
     $current_timestamp = current_time('timestamp');
