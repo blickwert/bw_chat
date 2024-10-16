@@ -2,7 +2,7 @@
 /*
 Plugin Name: BW Chat
 Description: Ein Plugin zum Erstellen von Chat-Nachrichten und Sitzungen.
-Version: 1.0
+Version: 1.1
 Author: Ihr Name
 */
 if (!defined('ABSPATH')) {
