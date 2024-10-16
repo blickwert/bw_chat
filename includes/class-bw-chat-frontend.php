@@ -84,6 +84,7 @@ public function enqueue_scripts() {
         // Überprüfen, ob das Cookie gesetzt ist
 
         $session_key = session_id();
+        error_log($session_key);
         if ($session_key) {
             // SMTP/IMAP Serverdaten aus den Plugin-Optionen
             $hostname = get_option('bw_chat_imap_hostname');
@@ -235,7 +236,7 @@ public function handle_ajax_form_contact() {
 
     // Beispiel für eine Antwort zum Testen
     $response = array(
-        'message' => 'foo'
+        'message' => 'Die Nachricht wurde erfolgreich versendet! Wir melden uns in Kürze bei Ihnen.',
     );
         
     if ($mail_sent) {
@@ -305,34 +306,58 @@ public function handle_ajax_form_userinput() {
 
 
 public function send_email_notification($name, $session_key) {
-
     $existing_post = BW_Chat_Helper::get_post_by_session_key($session_key);
-    $subject = 'Neue Chat-Nachricht - ' . $session_key;
-    $message_body = "Bisheriger Chat-Verlauf:\n\n";
 
     if ($existing_post) {
         $post_id = $existing_post->ID;
         $meta_keys = get_post_meta($post_id);
+        $user_name = BW_Chat_Helper::get_post_meta_from_sessionid('bw-chat-userprofile-name');
+
+        $subject = 'Chat mit ' . $user_name;
+        $message_body = "Bisheriger Chat-Verlauf:\n\n";
+
 
         // Verwende cf_admin_meta_key und cf_user_meta_key, um die Metadaten zu filtern
         $meta_key_admin = BW_Chat_Helper::cf_admin_meta_key();
         $meta_key_user = BW_Chat_Helper::cf_user_meta_key();
 
+        // Erstelle ein Array, um die gefilterten Meta-Daten zu speichern
+        $filtered_meta_keys = [];
+
+        // Filtere die relevanten Meta-Daten
         foreach ($meta_keys as $key => $values) {
             if (strpos($key, $meta_key_admin) === 0 || strpos($key, $meta_key_user) === 0) {
-                $timestamp = str_replace([$meta_key_admin, $meta_key_user], '', $key);
-                $time = BW_Chat_Helper::format_time($timestamp);
-                $date = BW_Chat_Helper::format_date($timestamp, 'd. M');
-                foreach ($values as $value) {
-                    $formatted_value = esc_html($value);
-                    $message_body .= "- {$time} {$date} | {$formatted_value}\n";
-                }
+                $filtered_meta_keys[$key] = $values;
+            }
+        }
+
+        // Kehre die Reihenfolge der gefilterten Meta-Daten um
+        $filtered_meta_keys = array_reverse($filtered_meta_keys, true);
+
+        // Verarbeite die umgekehrten Meta-Daten
+        foreach ($filtered_meta_keys as $key => $values) {
+            $timestamp = str_replace([$meta_key_admin, $meta_key_user], '', $key);
+            $time = BW_Chat_Helper::format_time($timestamp);
+            $datetime = BW_Chat_Helper::format_date($timestamp, 'd.m H:i');
+            foreach ($values as $value) {
+                $formatted_value = esc_html($value);
+                $type = BW_Chat_Helper::get_chat_type($key);
+                if( $type=='admin' ? $type='Admin' : $type = $user_name);
+                // Formatierter Chat-Eintrag
+                $message_body .= "{$datetime} | {$type} | {$formatted_value}\n\n";
+
             }
         }
     }
-    return $this::send_custom_wp_mail($message_body, $subject);
 
+    $message_body .= "\nNachrichten ID: " . $session_key;
+
+    return $this::send_custom_wp_mail($message_body, $subject);
 }
+
+
+
+
 
 
 
@@ -442,52 +467,47 @@ public function template_chat() {
     return ob_get_clean(); // Gibt den Inhalt des Output Buffers zurück
 }
 
-    
-
- /**
- * Rendert den Chat-Button, welcher auf das Chat-Fenster verlinkt.
- */
 private function templatepart_chatbutton() {
-    // Holt die URL und den Alt-Text des Operator-Bildes
-    $url = get_option('bw_chat_operator_image');
-    if ($url) {
-        $attachment_id = attachment_url_to_postid($url); // Holt die Bild-ID aus der URL
-        $alt_text = $attachment_id ? get_post_meta($attachment_id, '_wp_attachment_image_alt', true) : '';
-        $alt_text = $alt_text ? $alt_text : ''; // Fallback für den Alt-Text
-    } else {
-        $url = '';
-        $alt_text = '';
-    }
-    
     // Rendert den Button mit dem Operator-Bild
-    $output = "<div id='bw-chat-button' class='chat-show'><img src='{$url}' alt='{$alt_text}' /></div>";
+    $url = get_option('bw_chat_operator_image');
+    $img = wp_get_attachment_image( attachment_url_to_postid($url), 'medium' );
+    $output = "<div id='bw-chat-button' class='chat-show'>{$img}</div>";
     
     return $output;
-}
+    
+}    
 
     
 /**
  * Rendert das Haupt-Chatfenster (Chat-Canvas) mit Profilinformationen und dem Chatbereich.
  */
 private function templatepart_chatcanvas() {
-    $profile_title = get_option('bw_chat_company_title'); // Holt den Titel des Unternehmens
-    $profile_desc = '[profile_desc]'; // Platzhalter für die Unternehmensbeschreibung
+    $profile_company = get_option('bw_chat_company_title'); // Holt den Titel des Unternehmens
+    $profile_name = get_option('bw_chat_operator_name'); 
+    $profile_phone = get_option('bw_chat_company_phone');
+    $profile_email = get_option('bw_chat_company_email');
+    $profile_name_link = "<a href='mailto:{$profile_email}' >{$profile_name}</a>";
+    $profile_company_link = "<a href='mailto:{$profile_email}' >{$profile_company}</a>";
+    $profile_imgurl = get_option('bw_chat_operator_image'); 
+    $img = wp_get_attachment_image( attachment_url_to_postid($profile_imgurl), 'thumbnail' );
+    
     ob_start(); ?>
     <div id="bw-chat-window" class="chat-hidden">
-        <div id="bw-chat-header" >
-            <div class="wrap">
-                <img id="profile-img" />       
-                <div class="profil-wrap">
-                    <span id="profile-title" ><?php echo $profile_title; ?></span>
-                    <span id="profile-desc" ><?php echo $profile_desc; ?></span>
+        <div id="bw-chat-header">
+            <div class="profile-wrap">
+                <span id="profile-img" ><?php echo $img;?></span>       
+                <div class="wrap">
+                    <strong id="profile-name" ><?php echo $profile_name_link; ?></strong>
+                    <span id="profile-company" ><?php echo $profile_company_link; ?></span>
                 </div>
             </div>
     
             <div class="icon-wrap">
-                <img id="profile-contact-whatsapp" />
-                <img id="profile-contact-phone" />
-                <div id="bw-chat-close">X</div>
+                <a href='https://wa.me/<?php echo $profile_phone; ?>'><img id="profile-contact-whatsapp" src="<?php echo plugin_dir_url(__DIR__). 'assets/whatapp-icon.svg'; ?>" alt="Whatsapp"/></a>
+                <a href='mailto:<?php echo $profile_email; ?>'><img id="profile-contact-mail" src="<?php echo plugin_dir_url(__DIR__).'assets/mail-icon.svg'; ?>" alt="Email"/></a>
             </div>
+            <img id="bw-chat-close" src="<?php echo plugin_dir_url(__DIR__).'assets/close.svg'; ?>" alt="Close" />
+
         </div>
         
         <!-- Chat-Canvas Bereich -->
@@ -498,15 +518,28 @@ private function templatepart_chatcanvas() {
                 <?php //  AJAX CALL templatepart_ajax_chatitems(); ?>
             </div>
 
-            <div id="bw-chat-form">
-                <?php  echo self::templatepart_ajax_userinput(); ?>
-            </div>
+        </div>
+        <div id="bw-chat-form">
+            <?php  echo self::templatepart_ajax_userinput(); ?>
         </div>
     </div>
     <?php
     return ob_get_clean(); // Gibt den gerenderten Chat-Canvas zurück
 }
     
+
+
+
+
+
+
+
+
+
+
+
+
+
     
 /**
  * Rendert das Chatfragen-Formular oder das Kontaktformular, je nachdem, ob der Chat aktiv ist.
@@ -556,12 +589,15 @@ public function templatepart_chatcanvas_questions() {
             
             
             <form id="ajax-form-createchat" method="post"> 
-                <input type="text" id="bw-chat-userprofile-name" placeholder="Name" name="bw-chat-userprofile-name" required>
-                <input type="email" id="bw-chat-userprofile-email" placeholder="Email" name="bw-chat-userprofile-email" required>
-                <div><label for="privacy">
-                    <input type="checkbox" id="bw-chat-userprofile-privacy" name="bw-chat-userprofile-privacy" required>
-                    Ich stimme der Datenschutzerklärung zu
-                </label>
+                <div data-form-wrap >
+                    <input data-form-style-w50 type="text" id="bw-chat-userprofile-name" name="bw-chat-userprofile-name"  placeholder="Name" required />
+                    <input data-form-style-w50 type="email" id="bw-chat-userprofile-email" name="bw-chat-userprofile-email"  placeholder="Email" required />
+                </div>
+                <div data-form-wrap >
+                    <label data-form-style-w100 for="privacy">
+                        <input type="checkbox" id="bw-chat-userprofile-privacy" name="bw-chat-userprofile-privacy" required />
+                    Ich stimme der Datenschutzerklärung zu 
+                    </label>
                 </div>
                 <input type="submit" value="Abschicken">
             </form>
@@ -588,7 +624,7 @@ public function templatepart_chatcanvas_questions() {
                 <div data-form-wrap >
                     <label data-form-style-w100 for="privacy">
                         <input type="checkbox" id="privacy" name="bw-chat-contact-privacy" required />
-                    Ich stimme der Datenschutzerklärung zu
+                    Ich stimme der Datenschutzerklärung zu 
                     </label>
                 </div>
 
@@ -623,7 +659,8 @@ public function templatepart_ajax_userinput() {
     ob_start(); ?>
     <div id="bw-chat-userinput">
         <form id="ajax-form-userinput" method="post">
-           <input type="text" id="chat-userinput-entry" name="chat-entry" placeholder="..." disabled>
+<!--             <textarea id="chat-userinput-entry" name="chat-entry" placeholder="..." rows="1" disabled></textarea> -->
+           <input type="text" id="chat-userinput-entry" name="chat-entry" placeholder="Gib deine Nachricht ein..." disabled>
            <input type="submit" id="chat-userinput-submit" value="Abschicken" disabled>
         </form>
         <div id="bw-chat-userinput-result"></div>

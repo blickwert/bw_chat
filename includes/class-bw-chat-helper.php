@@ -346,20 +346,25 @@ public static function extract_replied_text($message) {
      * @param int $post_id Die ID des Posts, für den die Custom Fields formatiert werden sollen.
      * @return string Der formatierte Inhalt.
      */
-    public static function format_CF_content($post_id) {
-        $meta_key_user = self::cf_user_meta_key();
-        $meta_key_admin = self::cf_admin_meta_key();
+public static function format_CF_content($post_id) {
+    $meta_key_user = self::cf_user_meta_key();
+    $meta_key_admin = self::cf_admin_meta_key();
+
+    // Hole alle relevanten Meta-Keys, die mit 'bw-chat-' beginnen
+    $meta_items = self::post_meta_values($post_id, 'bw-chat-entry-');
     
-        // Hole alle relevanten Meta-Keys, die mit 'bw-chat-' beginnen
-        $meta_items = self::post_meta_values($post_id, 'bw-chat-entry-');
-        $formatted_content = '';
-    
-        foreach ($meta_items as $key => $value) {
-            $formatted_content .= self::format_chat_item($key, $value, $post_id);
-        }
-    
-        return $formatted_content;
+    // Umkehre die Reihenfolge der Meta-Einträge
+    $meta_items = array_reverse($meta_items, true); // true beibehält die Array-Schlüssel
+
+    $formatted_content = '';
+
+    // Schleife durch die umgekehrten Meta-Einträge
+    foreach ($meta_items as $key => $value) {
+        $formatted_content .= self::format_chat_item($key, $value, $post_id);
     }
+
+    return $formatted_content;
+}
 
     /**
      * Formatiert das Datum im gewünschten Format.
@@ -459,6 +464,12 @@ public static function get_chat_type($meta_key) {
 }
 
 
+    public function get_post_meta_from_sessionid($key) {
+        $post = self::get_post_by_session_key(session_id());
+        $post_id = $post->ID;
+        $name = get_post_meta($post_id, $key, true );
+        return $name;
+    }    
 
     
     public static function get_chat_userdata_salutation($post_id) {
