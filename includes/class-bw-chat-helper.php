@@ -5,12 +5,12 @@ class BW_Chat_Helper {
 
     private static $config = 'Standardkonfiguration';
     /**
-     * Fügt einem Post ein benutzerdefiniertes Feld (Custom Field) für Chat-Nachrichten hinzu.
+     * FÃ¼gt einem Post ein benutzerdefiniertes Feld (Custom Field) fÃ¼r Chat-Nachrichten hinzu.
      *
      * @param string $session_key Der Session-Key, um den entsprechenden Post zu finden.
-     * @param string $meta_key Der Schlüssel für das benutzerdefinierte Feld.
-     * @param string $meta_value Der Wert für das benutzerdefinierte Feld.
-     * @return bool True, wenn das benutzerdefinierte Feld erfolgreich hinzugefügt wurde, andernfalls false.
+     * @param string $meta_key Der SchlÃ¼ssel fÃ¼r das benutzerdefinierte Feld.
+     * @param string $meta_value Der Wert fÃ¼r das benutzerdefinierte Feld.
+     * @return bool True, wenn das benutzerdefinierte Feld erfolgreich hinzugefÃ¼gt wurde, andernfalls false.
      */
 
 
@@ -31,7 +31,7 @@ class BW_Chat_Helper {
     
 /*
     public static function get_session_key() {
-        // Überprüfen, ob bereits Header gesendet wurden
+        // ÃœberprÃ¼fen, ob bereits Header gesendet wurden
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
@@ -44,10 +44,23 @@ class BW_Chat_Helper {
     }
 */
 
+public function my_session_id() {
+    // ÃœberprÃ¼fen, ob das Cookie existiert
+    if (isset($_COOKIE['bw_chat_session'])) {
+        // Cookie-Wert als Session-ID nutzen
+        $session_key = $_COOKIE['bw_chat_session'];
+    } else {
+        // Falls kein Cookie existiert, eine neue Session-ID generieren
+        $session_key = bin2hex(random_bytes(16)); // Sichere zufÃ¤llige ID generieren
+        // Cookie setzen mit der neuen Session-ID
+        setcookie('bw_chat_session', $session_key, time() + (86400 * 30), "/"); // Cookie fÃ¼r 30 Tage gÃ¼ltig
+    }
 
+    return $session_key;
+}
     
     public static function is_session_id() {
-        $output =  (!session_id() ? false : true);
+        $output =  (this::my_session_id() ? false : true);
         return $output;        
     }
 
@@ -58,7 +71,7 @@ class BW_Chat_Helper {
 
         if ($existing_post) {
             $post_id = $existing_post->ID;
-            // Füge das benutzerdefinierte Feld hinzu
+            // FÃ¼ge das benutzerdefinierte Feld hinzu
             add_post_meta($post_id, $meta_key, $meta_value);
             return true;
         }
@@ -98,12 +111,12 @@ class BW_Chat_Helper {
 
 
     /**
-     * Überprüft, ob der Chat aktiviert ist
+     * ÃœberprÃ¼ft, ob der Chat aktiviert ist
      *
      * @return bool True
      */
     public static function is_bw_chat_active() {
-        $chat_status = get_option('bw_chat_activation', 'false'); // Standardmäßig 'false'
+        $chat_status = get_option('bw_chat_activation', 'false'); // StandardmÃ¤ÃŸig 'false'
         if ($chat_status !== 'true') {
             return false;
         }
@@ -112,25 +125,25 @@ class BW_Chat_Helper {
 
 
     /**
-     * Überprüft, ob der Chat aktuell live ist basierend auf den Online-Zeiten und dem Chat-Status.
+     * ÃœberprÃ¼ft, ob der Chat aktuell live ist basierend auf den Online-Zeiten und dem Chat-Status.
      *
      * @return bool True, wenn der Chat live ist und die aktuelle Zeit innerhalb der definierten Online-Zeiten liegt, andernfalls false.
      */
     public static function is_bw_chat_live() {
-        $chat_status = get_option('bw_chat_status', 'false'); // Standardmäßig 'false'
+        $chat_status = get_option('bw_chat_status', 'false'); // StandardmÃ¤ÃŸig 'false'
         if ($chat_status !== 'true') {
             return false;
         }
         
-        // Überprüfen, ob die aktuelle Zeit innerhalb der definierten Online-Zeiten liegt
+        // ÃœberprÃ¼fen, ob die aktuelle Zeit innerhalb der definierten Online-Zeiten liegt
         $is_online = self::onlinetime_is_current_time();
-//        error_log("Chat live check: " . var_export($is_online, true)); // Logge den Rückgabewert zur Überprüfung
+//        error_log("Chat live check: " . var_export($is_online, true)); // Logge den RÃ¼ckgabewert zur ÃœberprÃ¼fung
         return $is_online;
     }
 
 
     /**
-     * Überprüft, ob die aktuelle Serverzeit innerhalb der angegebenen Online-Zeiten liegt.
+     * ÃœberprÃ¼ft, ob die aktuelle Serverzeit innerhalb der angegebenen Online-Zeiten liegt.
      *
      * @return bool True, wenn die aktuelle Zeit innerhalb der Online-Zeiten liegt, andernfalls false.
      */
@@ -148,7 +161,7 @@ class BW_Chat_Helper {
 
         // Holen Sie sich den aktuellen Server-Tag und die Zeit
         $current_day = strtoupper(current_time('D', false)); // z.B., "Mon" -> "MO"
-        $current_time = current_time('H.i', false); // Aktuelle Serverzeit im Format "H.i" (z.B., "14.30" für 14:30 Uhr)
+        $current_time = current_time('H.i', false); // Aktuelle Serverzeit im Format "H.i" (z.B., "14.30" fÃ¼r 14:30 Uhr)
         
         // Map PHP date 'D' format to our custom format
         $day_map = [
@@ -166,12 +179,12 @@ class BW_Chat_Helper {
 
         $current_day_key = $day_map[$current_day];
 
-        // Überprüfen, ob für den aktuellen Tag Online-Zeiten definiert sind
+        // ÃœberprÃ¼fen, ob fÃ¼r den aktuellen Tag Online-Zeiten definiert sind
         if (!isset($online_times[$current_day_key])) {
             return false;
         }
 
-        // Über jede Zeitperiode für den aktuellen Tag iterieren
+        // Ãœber jede Zeitperiode fÃ¼r den aktuellen Tag iterieren
         foreach ($online_times[$current_day_key] as $time_range) {
             // Split the time range into start and end
             list($start_time, $end_time) = explode('-', $time_range);
@@ -191,7 +204,7 @@ class BW_Chat_Helper {
     }
 
     /**
-     * Parst die Eingabe der Online-Zeiten und gibt ein assoziatives Array zurück.
+     * Parst die Eingabe der Online-Zeiten und gibt ein assoziatives Array zurÃ¼ck.
      * 
      * @param string $input Die Eingabezeichenfolge aus dem bw_chat_online_times-Feld.
      * @return array Die geparsten Online-Zeiten als assoziatives Array.
@@ -250,7 +263,7 @@ class BW_Chat_Helper {
         $end_index = array_search($end_day, $days_order);
         
         if ($start_index === false || $end_index === false) {
-            return []; // Ungültige Tage
+            return []; // UngÃ¼ltige Tage
         }
 
         return array_slice($days_order, $start_index, $end_index - $start_index + 1);
@@ -259,7 +272,7 @@ class BW_Chat_Helper {
     /**
      * Extrahiert die E-Mail-Adresse aus einem String im Format "Name <email@domain.com>"
      *
-     * @param string $email_string Die Eingabezeichenfolge, die die E-Mail-Adresse enthält.
+     * @param string $email_string Die Eingabezeichenfolge, die die E-Mail-Adresse enthÃ¤lt.
      * @return string Die extrahierte E-Mail-Adresse.
      */
     public static function extract_email_address($email_string) {
@@ -272,7 +285,7 @@ class BW_Chat_Helper {
     /**
      * Extrahiert den Namen aus einem String im Format "Name <email@domain.com>"
      *
-     * @param string $email_string Die Eingabezeichenfolge, die den Namen enthält.
+     * @param string $email_string Die Eingabezeichenfolge, die den Namen enthÃ¤lt.
      * @return string Der extrahierte Name.
      */
     public static function extract_name($email_string) {
@@ -295,27 +308,27 @@ public static function extract_replied_text($message) {
     // Entferne HTML-Tags aus der Nachricht
     $message = strip_tags($message);
 
-    // Dekodiert HTML-Entities und Sonderzeichen (einschließlich UTF-8 Emojis)
+    // Dekodiert HTML-Entities und Sonderzeichen (einschlieÃŸlich UTF-8 Emojis)
     $message = html_entity_decode($message, ENT_QUOTES, 'UTF-8');
 
-    // Entferne überflüssige Leerzeichen und normalisiere Zeilenumbrüche
+    // Entferne Ã¼berflÃ¼ssige Leerzeichen und normalisiere ZeilenumbrÃ¼che
     $message = preg_replace('/\r\n|\r|\n/', "\n", trim($message));
     
     // Splitte die Nachricht in einzelne Zeilen
     $lines = explode("\n", $message);
 
-    // Zeichenfolgen für Signatur und zitierten Text filtern
+    // Zeichenfolgen fÃ¼r Signatur und zitierten Text filtern
     $replied_text = [];
     $signature_found = false;
     $empty_line_count = 0;
 
     foreach ($lines as $line) {
-        // Überprüfen auf zitierten Text
+        // ÃœberprÃ¼fen auf zitierten Text
         if (preg_match('/^\s*>/', $line)) {
-            continue; // Zitierten Text überspringen
+            continue; // Zitierten Text Ã¼berspringen
         }
 
-        // Überprüfen auf leere Zeilen (für Signaturerkennung)
+        // ÃœberprÃ¼fen auf leere Zeilen (fÃ¼r Signaturerkennung)
         if (trim($line) === '') {
             $empty_line_count++;
             if ($empty_line_count >= 2) {
@@ -323,7 +336,7 @@ public static function extract_replied_text($message) {
                 break;
             }
         } else {
-            $empty_line_count = 0; // Zurücksetzen, wenn keine leere Zeile
+            $empty_line_count = 0; // ZurÃ¼cksetzen, wenn keine leere Zeile
         }
 
         $replied_text[] = $line;
@@ -333,7 +346,7 @@ public static function extract_replied_text($message) {
     $filtered_message = implode(" ", $replied_text);
     $trim_filtered_message = trim($filtered_message);
 
-    // Entferne jegliche unsichere oder unerwünschte HTML und formatiere den Text als reine Zeichenfolge
+    // Entferne jegliche unsichere oder unerwÃ¼nschte HTML und formatiere den Text als reine Zeichenfolge
     return sanitize_text_field($trim_filtered_message);
 }
 
@@ -343,7 +356,7 @@ public static function extract_replied_text($message) {
     /**
      * Formatiert den neuen Inhalt aus den Custom Fields.
      *
-     * @param int $post_id Die ID des Posts, für den die Custom Fields formatiert werden sollen.
+     * @param int $post_id Die ID des Posts, fÃ¼r den die Custom Fields formatiert werden sollen.
      * @return string Der formatierte Inhalt.
      */
 public static function format_CF_content($post_id) {
@@ -353,12 +366,12 @@ public static function format_CF_content($post_id) {
     // Hole alle relevanten Meta-Keys, die mit 'bw-chat-' beginnen
     $meta_items = self::post_meta_values($post_id, 'bw-chat-entry-');
     
-    // Umkehre die Reihenfolge der Meta-Einträge
-    $meta_items = array_reverse($meta_items, true); // true beibehält die Array-Schlüssel
+    // Umkehre die Reihenfolge der Meta-EintrÃ¤ge
+    $meta_items = array_reverse($meta_items, true); // true beibehÃ¤lt die Array-SchlÃ¼ssel
 
     $formatted_content = '';
 
-    // Schleife durch die umgekehrten Meta-Einträge
+    // Schleife durch die umgekehrten Meta-EintrÃ¤ge
     foreach ($meta_items as $key => $value) {
         $formatted_content .= self::format_chat_item($key, $value, $post_id);
     }
@@ -367,10 +380,10 @@ public static function format_CF_content($post_id) {
 }
 
     /**
-     * Formatiert das Datum im gewünschten Format.
+     * Formatiert das Datum im gewÃ¼nschten Format.
      *
      * @param int $timestamp Der Unix-Timestamp, der formatiert werden soll.
-     * @param string $format Das gewünschte Datumsformat.
+     * @param string $format Das gewÃ¼nschte Datumsformat.
      * @return string Das formatierte Datum.
      */
     public static function format_date($timestamp, $format = 'y-m-d H:i') {
@@ -379,7 +392,7 @@ public static function format_CF_content($post_id) {
     }
 
     /**
-     * Formatiert die Zeit im gewünschten Format.
+     * Formatiert die Zeit im gewÃ¼nschten Format.
      *
      * @param int $timestamp Der Unix-Timestamp, der formatiert werden soll.
      * @return string Die formatierte Zeit.
@@ -393,20 +406,20 @@ public static function format_CF_content($post_id) {
 
 
     /**
-     * Generiert den Meta-Schlüssel für eine Benutzereingabe (Formular/AJAX).
+     * Generiert den Meta-SchlÃ¼ssel fÃ¼r eine Benutzereingabe (Formular/AJAX).
      *
-     * @param int $timestamp Der Unix-Timestamp für den Zeitpunkt der Eingabe.
-     * @return string Der generierte Meta-Schlüssel für die Benutzereingabe.
+     * @param int $timestamp Der Unix-Timestamp fÃ¼r den Zeitpunkt der Eingabe.
+     * @return string Der generierte Meta-SchlÃ¼ssel fÃ¼r die Benutzereingabe.
      */
     public static function cf_user_meta_key($timestamp = '') {
         return 'bw-chat-entry-user-' . $timestamp;
     }
 
     /**
-     * Generiert den Meta-Schlüssel für eine Benutzereingabe (Formular/AJAX).
+     * Generiert den Meta-SchlÃ¼ssel fÃ¼r eine Benutzereingabe (Formular/AJAX).
      *
-     * @param int $timestamp Der Unix-Timestamp für den Zeitpunkt der Eingabe.
-     * @return string Der generierte Meta-Schlüssel für die Benutzereingabe.
+     * @param int $timestamp Der Unix-Timestamp fÃ¼r den Zeitpunkt der Eingabe.
+     * @return string Der generierte Meta-SchlÃ¼ssel fÃ¼r die Benutzereingabe.
      */
     public static function cf_admin_meta_key($timestamp = '') {
         return 'bw-chat-entry-admin-' . $timestamp;
@@ -450,14 +463,14 @@ public static function format_CF_content($post_id) {
  * Unterscheidet zwischen 'admin' und 'user'.
  */
 public static function get_chat_type($meta_key) {
-    $meta_key_user = self::cf_user_meta_key();  // Meta-Schlüssel für Benutzer
-    $meta_key_admin = self::cf_admin_meta_key();  // Meta-Schlüssel für Administrator
+    $meta_key_user = self::cf_user_meta_key();  // Meta-SchlÃ¼ssel fÃ¼r Benutzer
+    $meta_key_admin = self::cf_admin_meta_key();  // Meta-SchlÃ¼ssel fÃ¼r Administrator
 
-    // Überprüfe, ob der Meta-Schlüssel dem Benutzer oder dem Administrator zugeordnet ist
+    // ÃœberprÃ¼fe, ob der Meta-SchlÃ¼ssel dem Benutzer oder dem Administrator zugeordnet ist
     if (strpos($meta_key, $meta_key_user) === 0) {
-        return 'user';  // Der Eintrag gehört dem Benutzer
+        return 'user';  // Der Eintrag gehÃ¶rt dem Benutzer
     } elseif (strpos($meta_key, $meta_key_admin) === 0) {
-        return 'admin';  // Der Eintrag gehört dem Administrator
+        return 'admin';  // Der Eintrag gehÃ¶rt dem Administrator
     }
 
     return 'unknown';  // Fallback, falls der Typ nicht erkennbar ist
