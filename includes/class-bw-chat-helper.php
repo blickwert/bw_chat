@@ -478,20 +478,19 @@ public static function get_chat_type($meta_key) {
         $time = self::format_time($timestamp);
         
         // Benutzerinformationen abrufen
-        $name = self::get_chat_userdata_name($post_id); // Ruft den Namen des Benutzers ab
+        $username = self::get_chat_userdata_name($post_id); // Ruft den Namen des Benutzers ab
+        $adminname = get_option('bw_chat_operator_name');  // Operator Name
     
         // Bereinige die Chat-Nachricht
         $chat_message = sanitize_text_field($value);
     
         // Bestimme den Typ basierend auf dem Meta-Key
         $type = self::get_chat_type($meta_key);
+        $name = ($type == 'user' ? $username : $adminname);
     
         // Formatierter Chat-Eintrag
         return "<div class='chat-item' data-chat-{$type}><div class='name'>{$name}</div><div class='chat-message'>{$chat_message}</div><div class='time'>{$time}</div></div>\n";
     }
-
-
-
 
 }
 
