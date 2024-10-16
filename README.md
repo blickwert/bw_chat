@@ -1,6 +1,7 @@
 # bw_chat
 
-
+## Todo 
+- php session_id to cokkie_session_id 
 
 
 ## Abhängigkeiten der Klassen und Funktionen im Plugin
