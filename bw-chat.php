@@ -19,7 +19,7 @@ class BW_Chat {
 
     public function __construct() {
 
-        add_action('init', [$this, 'start_session'], 1);
+//        add_action('init', [$this, 'start_session'], 1);
         
         new BW_Chat_WordPress();
         new BW_Chat_Frontend();
@@ -27,7 +27,7 @@ class BW_Chat {
         new BW_Chat_Email_Check();
 
     }
-    
+/*    
     // Startet die Sitzung, wenn sie noch nicht gestartet wurde
     public function start_session() {
         if (session_status() == PHP_SESSION_NONE) {
@@ -35,7 +35,7 @@ class BW_Chat {
         }
         return session_id();
     }
-
+*/
 
 
 
