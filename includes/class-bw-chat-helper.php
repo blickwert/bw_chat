@@ -451,7 +451,7 @@ public static function get_chat_type($meta_key) {
 
 
     public function get_post_meta_from_sessionid($key) {
-        $post = self::get_post_by_session_key(session_id());
+        $post = self::get_post_by_session_key(self::my_session_id());
         $post_id = $post->ID;
         $name = get_post_meta($post_id, $key, true );
         return $name;
