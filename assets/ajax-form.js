@@ -1,5 +1,18 @@
 jQuery(document).ready(function ($) {
 
+
+/*
+    // Delegiere das Event von einem bestehenden Element (in diesem Fall document)
+    $(document).on('input', '#chat-userinput-entry', function () {
+        // Setze die Höhe auf "auto", um die Höhe zurückzusetzen
+        $(this).css('height', 'auto');
+        // Passe die Höhe an den Scrollinhalt an
+        $(this).css('height', this.scrollHeight + 'px');
+    });
+    
+*/
+    
+    
     var BWChat = {
         // Speichere die Chat-spezifischen Variablen aus dem PHP-Backend
         session_id: ajax_form_params.session_id,
@@ -21,11 +34,11 @@ jQuery(document).ready(function ($) {
 
         // Funktion zum Verknüpfen von DOM-Events mit entsprechenden Funktionen
         bindEvents: function () {
-            $('#bw-chat-button').on('click', this.openChat); // Öffnet den Chat, wenn der Button geklickt wird
-            $('#bw-chat-close').on('click', this.closeChat); // Schließt den Chat
-            $('#ajax-form-createchat').on('submit', this.createChat); // Senden des Create-Chat-Formulars
-            $('#ajax-form-contactform').on('submit', this.submitContactForm); // Senden des Kontaktformulars
-            $('#ajax-form-userinput').on('submit', this.sendUserInput); // Senden der Benutzereingaben im Chat
+            $('#bw-chat-button').on('click', this.openChat.bind(this)); // Verwende .bind(this), um den Kontext zu bewahren
+            $('#bw-chat-close').on('click', this.closeChat.bind(this));
+            $('#ajax-form-createchat').on('submit', this.createChat.bind(this));
+            $('#ajax-form-contactform').on('submit', this.submitContactForm.bind(this));
+            $('#ajax-form-userinput').on('submit', this.sendUserInput.bind(this));
         },
 
         // Funktion zum Öffnen des Chats
@@ -68,8 +81,9 @@ jQuery(document).ready(function ($) {
             }
         },
 
-        // Starte das Polling, um alle 2 Sekunden nach neuen Nachrichten zu prüfen
+      // Starte das Polling, um alle 2 Sekunden nach neuen Nachrichten zu prüfen
         startPolling: function () {
+            // Polling für neue Chat-Nachrichten
             setInterval(function () {
                 $.post(ajax_form_params.ajax_url, {
                     action: 'handle_ajax_form_userinput',
@@ -77,16 +91,38 @@ jQuery(document).ready(function ($) {
                 }, function (response) {
                     if (response.success) {
                         // Aktualisiere den Chat mit neuen Nachrichten
+                        $('#bw-chat-step-createchat').removeClass('chat-show').addClass('chat-hidden');
                         $('#chat-items').html(response.data.message);
                     } else {
-                    //    console.log('Keine neuen Nachrichten.');
+                        // Keine neuen Nachrichten
                     }
                 }).fail(function (jqXHR, textStatus, errorThrown) {
                     // Behandle Fehler beim AJAX-Aufruf
                     console.error('AJAX Fehler: ', textStatus, errorThrown);
                 });
             }, 2000);
+
+            // Zusätzliches Polling für E-Mail-Antworten alle 3 Sekunden
+//            if (document.cookie.indexOf("bw-chat-state-is-open") !== -1) {
+                setInterval(function () {
+                    $.post(ajax_form_params.ajax_url, {
+                        action: 'check_reply_emails',
+                        security: ajax_form_params.nonce
+                    }, function (response) {
+                        if (response.success) {
+                            console.log(response.data.message);
+                            $('#chat-items').html(response.data.message);
+                        } else {
+                            console.log(response.data);
+                        }
+                    }).fail(function (jqXHR, textStatus, errorThrown) {
+                        console.error('AJAX Fehler beim E-Mail Polling: ', textStatus, errorThrown);
+                    });
+                }, 3000);
+ //           }
         },
+
+
 
         // Senden des Create-Chat-Formulars und Aktualisierung des Status
         createChat: function (e) {
@@ -115,9 +151,9 @@ jQuery(document).ready(function ($) {
             });
         },
 
-// Senden des Kontaktformulars und potenzielle Statusaktualisierung
 submitContactForm: function (e) {
     e.preventDefault();
+
     var formData = {
         action: 'handle_ajax_form_contact',
         security: ajax_form_params.nonce_contact,
@@ -131,23 +167,33 @@ submitContactForm: function (e) {
     $.post(ajax_form_params.ajax_url, formData, function (response) {
         console.log('AJAX Antwort:', response); // Zum Debuggen der gesamten Antwort
 
+        var resultElement = $('#bw-chat-contactform-result');
+
         if (response.success) {
             // Erfolgsfall - prüfen, ob response.data und response.data.message existieren
             if (response.data && response.data.message) {
-                alert(response.data.message); // Zeigt die Nachricht "foo" an
+                resultElement.html('<div class="notice success">' + response.data.message + '</div>'); // Erfolgreiche Nachricht anzeigen
             } else {
-                alert('Erfolg, aber keine Nachricht vorhanden.');
+                resultElement.html('<div class="notice success">Erfolg, aber keine Nachricht vorhanden.</div>');
                 console.error('Antwortstruktur unerwartet:', response);
             }
+
+            // Formularfelder leeren
+            $('#bw-chat-contact-name').val('');
+            $('#bw-chat-contact-email').val('');
+            $('#bw-chat-contact-subject').val('');
+            $('#bw-chat-contact-message').val('');
+            $('#bw-chat-contact-privacy').prop('checked', false);
         } else {
             // Fehlerfall - auch hier prüfen, ob response.data.message existiert
-            alert('Fehler: ' + (response.data && response.data.message ? response.data.message : 'Undefinierter Fehler.'));
+            var errorMessage = response.data && response.data.message ? response.data.message : 'Undefinierter Fehler.';
+            resultElement.html('<div class="notice error">Fehler: ' + errorMessage + '</div>');
             console.error('Fehlerhafte Antwort:', response);
         }
     }).fail(function (jqXHR, textStatus, errorThrown) {
         // Fehler im Netzwerk oder auf dem Server
         console.error('AJAX Fehler:', textStatus, errorThrown);
-        alert('AJAX Fehler: ' + textStatus);
+        $('#bw-chat-contactform-result').html('<div class="notice error">AJAX Fehler: ' + textStatus + '</div>');
     });
 },
 
@@ -162,6 +208,8 @@ submitContactForm: function (e) {
             $.post(ajax_form_params.ajax_url, formData, function (response) {
                 if (response.success) {
                     // Aktualisiere die Chat-Nachrichtenanzeige und lösche das Eingabefeld
+                     $('#chat-items').removeClass('chat-hidden').addClass('chat-show');
+
                     $('#chat-items').html(response.data.message);
                     $('#chat-userinput-entry').val('');
                     // Löse das Event aus, dass der Chat-Status aktualisiert wurde
