@@ -15,34 +15,6 @@ class BW_Chat_Helper {
 
 
 
-    /**
-     * startet session 
-     *
-     * @return session id
-     */
-/*
-    public function start_session() {
-        if (!session_id()) {
-            session_start();
-        }
-    }
-*/
-    
-    
-/*
-    public static function get_session_key() {
-        // Überprüfen, ob bereits Header gesendet wurden
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-
-        if (session_status() == PHP_SESSION_NONE) {
-            session_start();
-        }
-        return session_id();
-    }
-*/
 
 public function my_session_id() {
     // Überprüfen, ob das Cookie existiert
@@ -60,7 +32,7 @@ public function my_session_id() {
 }
     
     public static function is_session_id() {
-        $output =  (this::my_session_id() ? false : true);
+        $output =  (self::my_session_id() ? false : true);
         return $output;        
     }
 
@@ -103,7 +75,8 @@ public function my_session_id() {
     
 
     public static function is_bw_chat_sessionid_post() {
-        $post_id = self::get_post_by_session_key( session_id());
+        $session_key = self::my_session_id();
+        $post_id = self::get_post_by_session_key( $session_key );
         return $post_id ? true : false;
     }
 
