@@ -1,7 +1,14 @@
 # bw_chat
 
 ## Todo 
-- php session_id to cokkie_session_id 
+- input form erst einblenden wenn startform ausgefüllt.
+- x button aktivieren
+- farben von admin /user tauschen
+- 2. textnachricht auch persionalisieren / weglassen
+- chatfensterbreite
+- input submit icon drehen
+- emojis icludieren
+
 
 
 ## Abhängigkeiten der Klassen und Funktionen im Plugin
