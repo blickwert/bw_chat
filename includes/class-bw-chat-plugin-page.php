@@ -15,6 +15,7 @@ class BW_Chat_Plugin_Page {
     // Neue Optionen hinzufügen
     private $chat_activation_option_name = 'bw_chat_activation';
     private $chat_status_option_name = 'bw_chat_status';
+    private $chat_personolize_option_name = 'bw_chat_personolize';
     private $online_times_option_name = 'bw_chat_online_times';
     private $company_title_option_name = 'bw_chat_company_title';
     private $company_email_option_name = 'bw_chat_company_email';
@@ -53,6 +54,7 @@ class BW_Chat_Plugin_Page {
         
         register_setting('bw_chat_settings_group', $this->chat_activation_option_name);
         register_setting('bw_chat_settings_group', $this->chat_status_option_name);
+        register_setting('bw_chat_settings_group', $this->chat_personolize_option_name);
         register_setting('bw_chat_settings_group', $this->online_times_option_name);
         register_setting('bw_chat_settings_group', $this->company_title_option_name);
         register_setting('bw_chat_settings_group', $this->company_email_option_name);
@@ -104,6 +106,14 @@ class BW_Chat_Plugin_Page {
             $this->chat_status_option_name,
             'Chat Status',
             [$this, 'chat_status_field_html'],
+            'bw-chat-settings',
+            'bw_chat_overview_section'
+        );
+
+        add_settings_field(
+            $this->chat_personolize_option_name,
+            'Chat Personalisieren ',
+            [$this, 'chat_personolize_field_html'],
             'bw-chat-settings',
             'bw_chat_overview_section'
         );
@@ -267,6 +277,17 @@ class BW_Chat_Plugin_Page {
         <?php
     }
     
+    // HTML für das Dropdown zur personalisierung des Chats
+    public function chat_personolize_field_html() {
+        $personolize = get_option($this->chat_personolize_option_name);
+        ?>
+        <select name="<?php echo $this->chat_personolize_option_name; ?>">
+            <option value="false" <?php selected($personolize, 'false'); ?>>Nein</option>
+            <option value="true" <?php selected($personolize, 'true'); ?>>Ja</option>
+        </select>
+        <?php
+    }
+
     // HTML für das Eingabefeld der Online-Zeiten
     public function online_times_field_html() {
         $online_times = get_option($this->online_times_option_name);

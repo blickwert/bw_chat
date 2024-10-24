@@ -18,9 +18,11 @@ jQuery(document).ready(function ($) {
         session_id: ajax_form_params.session_id,
         is_chat_live: ajax_form_params.is_chat_live,
         post_sessionid: ajax_form_params.post_sessionid,
-
         // Initialisierung der Chat-Funktionen
         init: function () {
+
+
+
             this.bindEvents(); // Verknüpfe die DOM-Events
             this.checkChatStatus(); // Überprüfe den aktuellen Status des Chats
 
@@ -33,7 +35,7 @@ jQuery(document).ready(function ($) {
         },
 
         // Funktion zum Verknüpfen von DOM-Events mit entsprechenden Funktionen
-        bindEvents: function () {
+        bindEvents: function () {           
             $('#bw-chat-button').on('click', this.openChat.bind(this)); // Verwende .bind(this), um den Kontext zu bewahren
             $('#bw-chat-close').on('click', this.closeChat.bind(this));
             $('#ajax-form-createchat').on('submit', this.createChat.bind(this));
@@ -56,13 +58,20 @@ jQuery(document).ready(function ($) {
             document.cookie = "bw-chat-state-is-open=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             // Verändere die Anzeige des Chat-Buttons und verstecke das Chat-Fenster
             $('#bw-chat-button').removeClass('chat-hidden').addClass('chat-show');
-            $('#bw-chat-window').addClass('chat-hidden');
+            $('#bw-chat-window').removeClass('chat-show').addClass('chat-hidden');
         },
 
         // Überprüfe den aktuellen Status des Chats und passe die Benutzeroberfläche an
         checkChatStatus: function () {
             var chatOpenCookie = BWChat.getCookie('bw-chat-state-is-open'); // Überprüfe, ob das Cookie gesetzt ist
+            // Ausgabe der Variablen in der Konsole
 
+            console.log("session_id: ", this.session_id);
+            console.log("is_chat_live: ", this.is_chat_live);
+            console.log("post_sessionid: ", this.post_sessionid);
+            
+            
+            
             if (chatOpenCookie) {
                 // Der Chat ist geöffnet, passe die Oberfläche an
                 $('#bw-chat-button').removeClass('chat-show').addClass('chat-hidden');
@@ -71,13 +80,16 @@ jQuery(document).ready(function ($) {
                 // Verschiedene Zustände des Chats je nach Live-Status und Post-Existenz
                 if (!BWChat.is_chat_live) {
                     $('#bw-chat-step-contactform').removeClass('chat-hidden').addClass('chat-show');
-                } else if (BWChat.is_chat_live && !BWChat.post_sessionid) {
-                    $('#bw-chat-step-createchat').removeClass('chat-hidden').addClass('chat-show');
-                } else if (BWChat.is_chat_live && BWChat.post_sessionid) {
-                    $('#bw-chat-step-welcometext').removeClass('chat-hidden').addClass('chat-show');
-                    $('#chat-items').removeClass('chat-hidden').addClass('chat-show');
-                    $('#bw-chat-form input').prop('disabled', false).prop('required', true);
-                }
+                } else if (BWChat.post_sessionid) {
+                        // if chat live && active
+                        $('#bw-chat-step-createchat').remove();
+//                        $('#bw-chat-step-welcometext').remove();
+                        $('#bw-chat-step-welcometext').removeClass('chat-hidden');
+                        $('#chat-items').removeClass('chat-hidden');
+                        $('#bw-chat-form input').removeClass('chat-hidden');
+//                    }
+
+                } 
             }
         },
 
@@ -91,7 +103,9 @@ jQuery(document).ready(function ($) {
                 }, function (response) {
                     if (response.success) {
                         // Aktualisiere den Chat mit neuen Nachrichten
-                        $('#bw-chat-step-createchat').removeClass('chat-show').addClass('chat-hidden');
+                        if (!BWChat.post_sessionid) {
+                            $('#bw-chat-step-createchat').removeClass('chat-show').addClass('chat-hidden');
+                        }
                         $('#chat-items').html(response.data.message);
                     } else {
                         // Keine neuen Nachrichten
@@ -110,7 +124,7 @@ jQuery(document).ready(function ($) {
                         security: ajax_form_params.nonce
                     }, function (response) {
                         if (response.success) {
-                            console.log(response.data.message);
+//                            console.log(response.data.message);
                             $('#chat-items').html(response.data.message);
                         } else {
                             console.log(response.data);
@@ -141,7 +155,7 @@ jQuery(document).ready(function ($) {
                     // Aktualisiere die Benutzeroberfläche, um den neuen Zustand anzuzeigen
                     $('#bw-chat-step-createchat').removeClass('chat-show').addClass('chat-hidden');
                     $('#bw-chat-step-welcometext').html(response.data).removeClass('chat-hidden').addClass('chat-show');
-                    $('#chat-userinput-entry,#chat-userinput-submit').prop('disabled', false).prop('required', true);
+                    $('#chat-userinput-entry,#chat-userinput-submit').prop('required', true).removeClass('chat-hidden');
 
                     // Löse das Event aus, dass der Chat-Status aktualisiert wurde
                     $(document).trigger('chatStatusUpdated');
@@ -200,6 +214,10 @@ submitContactForm: function (e) {
         // Senden der Benutzereingaben im Chat und Aktualisierung der Oberfläche
         sendUserInput: function (e) {
             e.preventDefault();
+            
+            // Entferne das Element mit der ID #bw-chat-step-welcometext
+            $('#bw-chat-step-welcometext').remove();
+            
             var formData = {
                 action: 'handle_ajax_form_userinput',
                 security: ajax_form_params.nonce_userinput,
