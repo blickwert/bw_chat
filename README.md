@@ -1,11 +1,6 @@
 # bw_chat
 
 ## Todo 
-- input form erst einblenden wenn startform ausgefüllt.
-- x button aktivieren
-- farben von admin /user tauschen
-- 2. textnachricht auch persionalisieren / weglassen
-- chatfensterbreite
 - input submit icon drehen
 - emojis icludieren
 
