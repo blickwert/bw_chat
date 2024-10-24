@@ -479,8 +479,10 @@ public function template_chat() {
     $is_chat_acivation = BW_Chat_Helper::is_bw_chat_active(); // Überprüft, ob der Chat aktiv ist
     $is_session_id = BW_Chat_Helper::is_session_id(); // Überprüft, ob eine Chat-Sitzung existiert
     $is_chat_live = BW_Chat_Helper::is_bw_chat_live(); // Überprüft, ob der Chat live ist    ob_start(); 
+    $is_admin_logged_in = is_user_logged_in() && current_user_can('administrator'); // Überprüft, ob ein Administrator eingeloggt ist
+
     // Zeigt den Chat-Button und das Chat-Fenster nur an, wenn der Chat aktiviert ist und keine Sitzung existiert
-    if ($is_chat_acivation ) { 
+    if ($is_chat_acivation && $is_admin_logged_in ) { 
         echo self::templatepart_chatbutton();
         echo self::templatepart_chatcanvas();
     } 
